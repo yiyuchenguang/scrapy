@@ -144,12 +144,16 @@ class ScriptCsdn(object):
             self.upload_picture(os.path.join(random_folder,i))
             self.write_text(line)
 
+        '''尾巴'''
+        self.write_text(end)
+
         '''文章标题先输入'''
         title_input = self.driver.find_element(By.XPATH, ".//div[@class='article-bar__input-box']/input")
         title_input.clear()
         title_input.send_keys(self.poem_title)
 
-        #self.publish_config()
+        self.publish_config()
+        print("**********************写文章完成*******************")
 
     def publish_config(self):
             '''
@@ -182,9 +186,26 @@ class ScriptCsdn(object):
             ActionChains(self.driver).move_to_element(feng_mian).click().perform()
             time.sleep(1)  # 等待一秒
 
+            '''文章标签'''
+            wenzhang_label = self.driver.find_element(By.XPATH, ".//button[contains(text(),'添加文章标签')]")
+            ActionChains(self.driver).move_to_element(wenzhang_label).click().perform()
+            time.sleep(1)  # 等待一秒
+            WebDriverWait(self.driver, 3).until(
+                EC.presence_of_element_located((By.XPATH, ".//div[@class='mark_selection_box']")))
+
+            vertical_label = ["古诗词", "selenium"]
+            for i in vertical_label:
+                label = self.driver.find_element(By.XPATH, ".//div[@class='mark_selection_box']//input")
+                label.clear()
+                label.send_keys(i)
+                label.send_keys(Keys.ENTER)
+                time.sleep(0.5)  # 等待一秒
+            close = self.driver.find_element(By.XPATH, ".//div[@class='mark_selection_box']//button[@title ='关闭']")
+            ActionChains(self.driver).move_to_element(close).click().perform()
+            time.sleep(1)  # 等待一秒
+
             '''专栏选择，checkbox，选择的是input标签的父亲标签label'''
             zhuan_lan = self.driver.find_element(By.XPATH, ".//input[@value='诗词鉴赏']//..")
-            #self.driver.execute_script('arguments[0].removeAttribute(\"style\")', zhuan_lan)
             ActionChains(self.driver).move_to_element(zhuan_lan).click().perform()
             time.sleep(1)  # 等待一秒
 
@@ -207,26 +228,27 @@ class ScriptCsdn(object):
             pyautogui.scroll(-1000)  # 向下滚动鼠标
             time.sleep(1)  # 等待一秒
 
-            '''保存'''
-            #save = self.driver.find_element(By.XPATH, ".//button[contains(text(),'保存草稿')]")
-            save = self.driver.find_element(By.XPATH, "./html/body/div[1]/div[2]/div/div[1]/div[2]/button[2]")
-            ActionChains(self.driver).move_to_element(save).click().perform()
-            time.sleep(3)  # 等待一秒
-            '''取消'''
-            quxiao = self.driver.find_element(By.XPATH, "./html/body/div[1]/div[2]/div/div[1]/div[2]/button[1]")
-            ActionChains(self.driver).move_to_element(quxiao).click().perform()
-            time.sleep(1)  # 等待一秒
+            # '''保存'''
+            # #save = self.driver.find_element(By.XPATH, ".//button[contains(text(),'保存草稿')]")
+            # save = self.driver.find_element(By.XPATH, "./html/body/div[1]/div[2]/div/div[1]/div[2]/button[2]")
+            # ActionChains(self.driver).move_to_element(save).click().perform()
+            # time.sleep(3)  # 等待一秒
+            # '''取消'''
+            # quxiao = self.driver.find_element(By.XPATH, "./html/body/div[1]/div[2]/div/div[1]/div[2]/button[1]")
+            # ActionChains(self.driver).move_to_element(quxiao).click().perform()
+            # time.sleep(1)  # 等待一秒
+            #
+            # WebDriverWait(self.driver, 3).until_not(
+            #     EC.visibility_of_element_located((By.XPATH, ".//h3[text()='发布文章']")))
 
+            '''发布'''
+            #save = self.driver.find_element(By.XPATH, ".//button[contains(text(),'保存草稿')]")
+            save = self.driver.find_elements(By.XPATH, ".//button[text()='发布文章']")[-1]
+            ActionChains(self.driver).move_to_element(save).click().perform()
+            time.sleep(1)  # 等待一秒
             WebDriverWait(self.driver, 3).until_not(
                 EC.visibility_of_element_located((By.XPATH, ".//h3[text()='发布文章']")))
 
-            # '''发布'''
-            # #save = self.driver.find_element(By.XPATH, ".//button[contains(text(),'保存草稿')]")
-            # save = self.driver.find_element(By.XPATH, "./html/body/div[1]/div[2]/div/div[1]/div[2]/button[4]")
-            # ActionChains(self.driver).move_to_element(save).click().perform()
-            # time.sleep(1)  # 等待一秒
-            # WebDriverWait(self.driver, 3).until_not(
-            #     EC.visibility_of_element_located((By.XPATH, ".//h3[text()='发布文章']")))
 
             return None
 
