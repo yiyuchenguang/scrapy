@@ -7,14 +7,12 @@
 
 from scrapy import signals
 from scrapy.http import HtmlResponse
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.common.by import By
+
 import pyperclip
 import pyautogui
 import time
@@ -22,7 +20,7 @@ import traceback
 import re
 import os
 import random
-from ik123.settings import USER_AGENTS
+from ik123.settings import USER_AGENTS,image_path
 
 # from gushi.settings import PROXIES
 # import base64
@@ -78,19 +76,7 @@ class Ik123DownloaderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
-    def __init__(self,):
-        chrome_options = Options()
-        # self.chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--disable-gpu')
-        chrome_options.add_experimental_option('useAutomationExtension', False)
-        browser_path = "../chromedriver_win32/chromedriver.exe"
-        #caps = DesiredCapabilities.CHROME
-        # # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
-        #caps["pageLoadStrategy"] = "none"
-        self.browser = webdriver.Chrome(executable_path=browser_path, options=chrome_options)#, desired_capabilities=caps
-        #self.browser.set_window_size(900, 600)  # 设置浏览器的窗体大小
+
     @classmethod
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
@@ -108,35 +94,35 @@ class Ik123DownloaderMiddleware(object):
         if 'list' not in request.url:
             print("*************************" + request.url)
             try:
-                # try:
                 K = 0
                 while(True):
                     try:
-                        self.browser.get(request.url)
+                        spider.browser.get(request.url)
                         #self.browser.implicitly_wait(10)
-                        element = WebDriverWait(self.browser, 10).until(EC.presence_of_element_located((By.ID, "gui_left")))
-                        print("##################")
-                        print(element)
+                        element = WebDriverWait(spider.browser, 30).until(EC.presence_of_element_located((By.ID, "gui_left")))
+                        # print("##################")
+                        # print(element)
                         break
                     except TimeoutException:
-                            self.browser.refresh()
+                            print("图片内容元素定位失败\n{}".format(request.url))
+                            spider.browser.refresh()
                             K = K + 1
                             if( K >2 ):
                                 return HtmlResponse(url=request.url, status=500, request=request)
-
-                pic = self.browser.find_elements_by_xpath("//div[@id='gui_left']//img")
+                pic = spider.browser.find_elements(By.XPATH, r"//div[@id='gui_left']//img")
                 pic_urls = [i.get_attribute('src') for i in pic]
                 pic_names = [i.split('/')[-1:][0] for i in pic_urls]
-                pic_rejoin_path = [os.path.join(self.image_file, i) for i in pic_names]
+                pic_rejoin_path = [os.path.join(image_path, i) for i in pic_names]
                 print(pic_rejoin_path)
                 for i in range(len(pic)):
-                    actions = ActionChains(self.browser)
+                    actions = ActionChains(spider.browser)
                     # 找到图片后右键单击图片
                     actions.move_to_element(pic[i])  # 定位到元素
                     actions.context_click(pic[i])  # 点击右键
                     actions.perform()  # 执行
                     time.sleep(1)  # 等待一秒
-                    pyautogui.typewrite(['V'])  # v 是保存的快捷键
+                    pyautogui.press('v')  # v 是保存的快捷键
+                    #pyautogui.typewrite(['V'])  # v 是保存的快捷键
                     time.sleep(1)  # 等待一秒
                     pyperclip.copy(pic_rejoin_path[i])  # 把 指定的路径拷贝到过来
                     time.sleep(1)  # 等待一秒
@@ -146,9 +132,17 @@ class Ik123DownloaderMiddleware(object):
                     time.sleep(0.5)  # 等待一秒
                     print("图片下载完成:%s"%pic_urls[i])
                               
-                return HtmlResponse(url=request.url, body=self.browser.page_source, request=request, encoding='utf-8')  #
+                return HtmlResponse(url=request.url, body=spider.browser.page_source, request=request, encoding='utf-8')
             except TimeoutException:
-                return HtmlResponse(url=request.url,status=500,request=request)
+                return HtmlResponse(url=request.url,  status=500, request=request)
+        else:
+            print("主页**************主页**************")
+            spider.browser.get(request.url)
+            try:
+                WebDriverWait(spider.browser, 60).until(EC.presence_of_element_located((By.ID, "gui_left")))
+            except:
+                print("翻页内容元素定位失败\n{}".format(request.url))
+            return HtmlResponse(url=request.url, body=spider.browser.page_source, request=request, encoding='utf-8')  #
         return response
 
     def process_exception(self, request, exception, spider):
@@ -159,16 +153,9 @@ class Ik123DownloaderMiddleware(object):
         # - return a Response object: stops process_exception() chain
         # - return a Request object: stops process_exception() chain
         pass
+
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
-        
-        pic_root = os.path.abspath(os.path.dirname(os.getcwd()))
-        self.image_file = os.path.join(pic_root, 'image')
-        if not os.path.exists(self.image_file):
-            os.makedirs(self.image_file)
-            
-    def closed(self,spider):
-        self.browser.quit()
 
 
 # 随机的User-Agent

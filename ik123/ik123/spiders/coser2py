@@ -1,0 +1,41 @@
+# -*- coding: utf-8 -*-
+from scrapy.selector import Selector
+import scrapy
+from ik123.items import Ik123Item
+
+
+class CoserSpider(scrapy.Spider):
+    name = "coser"
+    allowed_domains = ["ik123.com"]
+    start_urls = (
+        'http://p.ik123.com/bizhi/fengjing/list_1.html',
+        #'http://p.ik123.com/bizhi/dongwu/list_1.html',
+        #'http://p.ik123.com/bizhi/youxi/list_1.html',
+        #'http://www.ik123.com/q/tuku/weimei/'
+    )
+
+
+
+    def parse(self, response):
+        pic_urls = response.xpath("//div[@id='gui_left']//li[@class='img']/a/@href").getall()
+        print(response.status)
+        print(response.body)
+        print("***********pic_urls**********",response.xpath(r"//div[@id='gui_left']"))
+        print("***********pic_urls**********",pic_urls)
+        for link in pic_urls:
+            request = scrapy.Request(link, callback=self.parse_item)
+            yield request
+
+        # follow pagination links
+        next_page = response.xpath("//a[text()='下一页']/@href").get()
+        if next_page is not None:
+            yield response.follow(next_page, self.parse)
+
+
+    def parse_item(self, response):
+        item = Ik123Item()
+        item['info'] = response.xpath("//div[@class='daohang']/following-sibling::h1[1]/text()").get()#'浩瀚唯美星空壁纸_绝美好看星空
+        item['name'] = response.xpath("//div[@id='gui_left']/p/img/@alt").getall()
+        item['image_urls'] = response.xpath("//div[@id='gui_left']//img/@src").getall()
+
+        return item

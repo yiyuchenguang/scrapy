@@ -2,7 +2,7 @@
 import os, random, shutil
 import json
 import math
-import os
+import traceback
 from PIL import Image, ImageDraw, ImageFont
 
 class CompositePicture():
@@ -13,6 +13,9 @@ class CompositePicture():
         self.fileDir = fileDir  # 源图片文件夹路径
         self.tarDir = tarDir  # 移动到新的文件夹路径
         self.poem_img_folder = poem_img_folder
+        self.mkdir(self.tarDir)
+        self.mkdir(self.poem_img_folder)
+
 
     def validateTitle(self,title):
         import re
@@ -36,15 +39,25 @@ class CompositePicture():
         while (True):
             i = i+1
             pathDir = os.listdir(sourceFile)  # 取图片的原始路径
-            #print(pathDir)
+            # print(pathDir)
             filenumber = len(pathDir)
+            if(filenumber == 0):
+                print("没有更多图片了！")
+                exit(1)
+
             rate = 0.01  # 自定义抽取图片的比例，比方说100张抽10张，那就是0.1
             # picknumber = int(filenumber * rate)  # 按照rate比例从文件夹中取一定数量图片
             try:
                 sample = random.sample(pathDir, 1)[0]  # 随机选取picknumber数量的样本图片
-                shutil.move(sourceFile + sample, targetFile + sample)
-                return (targetFile + sample)
+                # print(sample)
+                # print(sourceFile)
+                # print(targetFile)
+                sourceFile = os.path.join(sourceFile, sample)
+                targetFile = os.path.join(targetFile, sample)
+                shutil.move(sourceFile, targetFile)
+                return targetFile
             except:
+                print(traceback.print_exc())
                 print("文件中找不到可用的图片_%d"%i)
             if i > 10:
                 print("连续10次找不到合适的图片！ ")
@@ -78,7 +91,6 @@ class CompositePicture():
             w = len(text[i]) * font_size
             self.draw.text(((self.W-w)/2,  offset + i*(font_size + spaceSize)), text[i], font=setFont,fill = fillColor)  # 利用ImageDraw的内置函数，在图片上写入文字
 
-
     def outPutStrLength(self,tempStr,row_length):
         startpoint = 0
         retValue =[]
@@ -92,10 +104,12 @@ class CompositePicture():
         return retValue
 
 if __name__ == '__main__':
-    #C = CompositePicture(r"./c_poem/songci_jingxuan.json",r"../image/" ,r'../image_animal_test/',r"../songci_jingxuan_test/")
-    #C = CompositePicture(r"./c_poem/songci_jingxuan.json",r"../image/" ,r'../image_animal/',r"../songci_jingxuan/")
-    #C = CompositePicture(r"./c_poem/songci.json", r"./image_2/", r'./image_animal/',r"./out_songci/")  # 宋词 jingxiansongci.json
-    C = CompositePicture(r"./c_poem/tangshi.json", r"../image/", r'../image_animal/', r"../out_tangshi/")  # 唐诗
+    image_folder = r"D:\Document\source\picture"
+    image_out_folder = r"D:\Document\source\picture_target"
+    poem_created_folder = r"D:\Document\source\poem_created"
+    poem_folder = r"D:\Document\source\poem\songcijianhgxuan.json"
+
+    C = CompositePicture(poem_folder, image_folder, image_out_folder,poem_created_folder)  # 唐诗
     data = C.load()
 
     while True:
@@ -142,8 +156,8 @@ if __name__ == '__main__':
             C.draw_image(font_size=font_size, fillColor="#D226DB", spaceSize=spaceSize,
                          text=retValue[startpoint:startpoint + s_num], offset=C.H + 100)  # 46:30
             #C.new_img.show()
-            img_name = os.path.join(new_folder, "%s_%s_%d.JPEG" % (temp_img, new_title, i + 1))
-            C.new_img.save(img_name, "JPEG")
+            img_name = os.path.join(new_folder, "%s_%s_%d.jpeg" % (new_title, "诗词", index))
+            C.new_img.save(img_name, "jpeg")
             print("图片保存成功 ： %s" % img_name)
 
         # 诗词注释
@@ -168,8 +182,8 @@ if __name__ == '__main__':
             C.draw_image(font_size=font_size, fillColor="#D226DB", spaceSize=spaceSize,
                          text=retValue[startpoint:startpoint + s_num], offset=C.H + 80)  # 46:30
             #C.new_img.show()
-            img_name = os.path.join(new_folder, "%s_%s_%s_%d.JPEG" % (temp_img, new_title, "注释", i + 1))
-            C.new_img.save(img_name, "JPEG")
+            img_name = os.path.join(new_folder, "%s_%s_%d.jpeg" % (new_title, "注释", index))
+            C.new_img.save(img_name, "jpeg")
             print("图片保存成功 ： %s" % img_name)
 
         # 诗词赏析
@@ -190,8 +204,8 @@ if __name__ == '__main__':
             C.draw_image(font_size=font_size, fillColor="#3000f7", spaceSize=spaceSize,
                          text=retValue[startpoint:startpoint + s_num], offset=C.H + 80)  # 内容
             #C.new_img.show()
-            img_name = os.path.join(new_folder, "%s_%s_%s_%d.JPEG" % (temp_img, new_title, "赏析", i + 1))
-            C.new_img.save(img_name, "JPEG")
+            img_name = os.path.join(new_folder, "%s_%s_%d.jpeg" % (new_title, "赏析", index))
+            C.new_img.save(img_name, "jpeg")
             print("图片保存成功 ： %s" % img_name)
         #break
 

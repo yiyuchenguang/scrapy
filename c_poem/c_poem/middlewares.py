@@ -67,18 +67,6 @@ class CPoemDownloaderMiddleware(object):
     def __init__(self, ):
         pass
 
-        # self.chrome_options = Options()
-        # # self.chrome_options.add_argument('--headless')
-        # self.chrome_options.add_argument('--no-sandbox')
-        # self.chrome_options.add_argument('--disable-dev-shm-usage')
-        # self.chrome_options.add_argument('--disable-gpu')
-        # self.chrome_options.add_experimental_option('useAutomationExtension', False)
-        # # desired_capabilities = DesiredCapabilities.CHROME
-        # # # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
-        # # desired_capabilities["pageLoadStrategy"] = "none"
-        # self.browser = webdriver.Chrome(
-        #     executable_path=r"C:\MKSProjects\Vision Test Environment\CANoe\Geely_GEEA2\Tools\myPython\chromedriver.exe",
-        #     options=self.chrome_options)
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -91,18 +79,17 @@ class CPoemDownloaderMiddleware(object):
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
-        self.browser = spider.browser
         if request.meta.get('gus'):
             while (True):
                 try:
-                    self.browser.get(request.url)
+                    spider.browser.get(request.url)
                     #element = WebDriverWait(self.browser, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "sons")))
-                    self.browser.implicitly_wait(3)
-                    print("##################")
-                    return HtmlResponse(url=request.url, body=self.browser.page_source, request=request,encoding='utf-8')
+                    spider.browser.implicitly_wait(3)
+                    print("*******爬取古诗*********\n{}".format(request.url))
+                    return HtmlResponse(url=request.url, body=spider.browser.page_source, request=request,encoding='utf-8')
                     break
                 except TimeoutException:
-                    self.browser.refresh()
+                    spider.browser.refresh()
                     K = K + 1
                     if (K > 2):
                         return HtmlResponse(url=request.url, status=500, request=request)
@@ -121,7 +108,7 @@ class CPoemDownloaderMiddleware(object):
         spider.logger.info('Spider opened: %s' % spider.name)
 
     def closed(self, spider):
-        self.browser.quit()
+        spider.browser.quit()
 
 
 

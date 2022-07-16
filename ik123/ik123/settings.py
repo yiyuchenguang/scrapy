@@ -8,13 +8,15 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import os
 
 BOT_NAME = 'ik123'
 
 SPIDER_MODULES = ['ik123.spiders']
 NEWSPIDER_MODULE = 'ik123.spiders'
 
-
+browser_path = "D:\Document\scrapy\chromedriver_win32\chromedriver_win32\chromedriver.exe"
+image_path = "D:\Document\source\picture"
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'ik123 (+http://www.yourdomain.com)'
 

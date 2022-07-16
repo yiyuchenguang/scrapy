@@ -14,13 +14,14 @@ BOT_NAME = 'c_poem'
 SPIDER_MODULES = ['c_poem.spiders']
 NEWSPIDER_MODULE = 'c_poem.spiders'
 
-
+browser_path = "D:\Document\scrapy\chromedriver_win32\chromedriver_win32\chromedriver.exe"
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'c_poem (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 FEED_EXPORT_ENCODING = 'UTF-8'
+FEED_URL = r"D:\Document\source\poem\songcijianhgxuan.json"
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
